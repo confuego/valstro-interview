@@ -3,7 +3,7 @@ import {
   clearRows,
   generateRows,
   resetInput,
-  toggleLoading,
+  setLoading,
 } from "./render.utils";
 import { PeopleService } from "./services/people";
 
@@ -21,7 +21,7 @@ export function runVanillaApp() {
     sub.unsubscribe();
 
     generateRows(characterContainer, Number(multiplyElement.value), ...peeps);
-    toggleLoading(loadingElement);
+    setLoading(loadingElement, false);
 
     rootElement.addEventListener("keyup", (e: KeyboardEvent) => {
       resetInput(e, filterElement, multiplyElement);

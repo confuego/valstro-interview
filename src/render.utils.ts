@@ -3,10 +3,14 @@ import { Person } from "./models";
 import { PeopleService } from "./services/people";
 
 export const generateRows = (
-  root: HTMLElement,
+  root: HTMLElement | null,
   multiplier?: number,
   ...people: Person[]
 ): void => {
+  if (!root) {
+    return;
+  }
+
   people.forEach((p) => {
     const row = document.createElement("tr");
     const name = document.createElement("td");
@@ -23,19 +27,23 @@ export const generateRows = (
 
     row.append(name, height, mass, power);
 
-    root?.appendChild(row);
+    root.appendChild(row);
   });
 };
 
-export const clearRows = (root: HTMLElement): void => {
-  while (root.firstChild) {
+export const clearRows = (root: HTMLElement | null): void => {
+  while (root && root.firstChild) {
     root.removeChild(root.firstChild);
   }
 };
 
-export const toggleLoading = (loadingElement: HTMLElement): void => {
-  const currentState = loadingElement.style.display;
-  loadingElement.style.display = currentState === "none" ? "" : "none";
+export const setLoading = (
+  loadingElement: HTMLElement | null,
+  loading?: boolean
+): void => {
+  if (loadingElement) {
+    loadingElement.style.display = loading ? "" : "none";
+  }
 };
 
 export const resetInput = (

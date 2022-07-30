@@ -4,7 +4,7 @@ import {
   clearRows,
   generateRows,
   resetInput,
-  toggleLoading,
+  setLoading,
 } from "./render.utils";
 import { PeopleService } from "./services/people";
 
@@ -16,7 +16,7 @@ function FunctionalComp() {
     PeopleService.read().subscribe((p) => {
       if (loadingElement.current) {
         setPeopleStore(p);
-        toggleLoading(loadingElement.current);
+        setLoading(loadingElement.current, false);
       }
     });
   }, [setPeopleStore, loadingElement.current]);
