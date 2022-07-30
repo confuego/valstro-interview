@@ -1,10 +1,13 @@
 import { PaginationResult } from "../../models/pagination.result";
 import { Person } from "../../models/person";
+import { Observer, Subject } from "./people.stalker";
 
 export class PeopleService {
   // https://swapi.dev/api/people/?format=json
 
-  public static async read(): Promise<Person[]> {
+  private static peopleStalker = new Subject<Person[]>();
+
+  private static async collectData(): Promise<Person[]> {
     const result: Person[] = [];
 
     let currentPageQuery: string | undefined =
@@ -29,6 +32,26 @@ export class PeopleService {
     }
 
     return result;
+  }
+
+  public static read(): Subject<Person[]> {
+    // already has subscribers
+    if (this.peopleStalker.observers.length) {
+      console.log("Already calling people api.");
+      return this.peopleStalker;
+    }
+
+    console.log("Collecting data from people API");
+    this.collectData().then((r) => {
+      console.log(
+        "Notifying ",
+        this.peopleStalker.observers.length,
+        " people subscribers."
+      );
+      this.peopleStalker.next(r);
+    });
+
+    return this.peopleStalker;
   }
 
   public static filter(query: string, people: Person[]): Person[] {
