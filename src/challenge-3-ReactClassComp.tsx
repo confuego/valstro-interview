@@ -1,18 +1,10 @@
 import React from "react";
 import { Component } from "react";
+import { runVanillaApp } from "./challenge-1-vanilla";
 import { Person } from "./models";
-import {
-  clearRows,
-  generateRows,
-  resetInput,
-  setLoading,
-} from "./render.utils";
-import { PeopleService } from "./services/people";
+import { Observer } from "./services/people/people.observer";
 
-class ClassComp extends Component<
-  undefined,
-  { peopleStore: Person[]; people: Person[] }
-> {
+class ClassComp extends Component {
   private rowContainer = React.createRef<HTMLTableSectionElement>();
 
   private loadingElement = React.createRef<HTMLDivElement>();
@@ -21,62 +13,48 @@ class ClassComp extends Component<
 
   private multiplierInput = React.createRef<HTMLInputElement>();
 
+  private rootContainer = React.createRef<HTMLDivElement>();
+
+  private subscription: Observer<Person[]> | undefined;
+
   componentDidMount() {
-    console.log("Did mount.");
-    setLoading(this.loadingElement.current, true);
-    this.collectPeople();
+    if (
+      this.rootContainer.current &&
+      this.rowContainer.current &&
+      this.multiplierInput.current &&
+      this.filterInput.current &&
+      this.loadingElement.current
+    ) {
+      if (this.subscription) {
+        this.subscription.unsubscribe();
+      }
+      this.subscription = runVanillaApp(
+        this.rootContainer.current,
+        this.rowContainer.current,
+        this.multiplierInput.current,
+        this.filterInput.current,
+        this.loadingElement.current
+      );
+    }
   }
 
-  componentDidUpdate() {
-    setLoading(this.loadingElement.current, false);
-    console.log("Did update", this.rowContainer.current);
-    clearRows(this.rowContainer.current);
-    generateRows(
-      this.rowContainer.current,
-      Number(this.multiplierInput.current?.value) || 10,
-      ...this.state.people
-    );
-  }
-
-  collectPeople() {
-    PeopleService.read().subscribe((p) => {
-      this.setState((s) => {
-        return { peopleStore: p, people: p };
-      });
-    });
+  componentWillUnmount() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   render() {
     return (
-      <div
-        id="class-comp"
-        onKeyDown={(e) => {
-          resetInput(e, this.filterInput.current, this.multiplierInput.current);
-        }}
-      >
+      <div ref={this.rootContainer} id="class-comp">
         <h2>React Class Component</h2>
-        Filter:{" "}
-        <input
+        Filter: <input
           placeholder="Filter by name"
           ref={this.filterInput}
-          onInput={() => {
-            this.setState((s) => {
-              return {
-                peopleStore: s.peopleStore,
-                people: PeopleService.filter(
-                  this.filterInput.current?.value || "",
-                  s.peopleStore
-                ),
-              };
-            });
-          }}
         />{" "}
         Multiplier:{" "}
         <input
           ref={this.multiplierInput}
-          onInput={() => {
-            this.forceUpdate();
-          }}
           placeholder="Multiplier"
           type="number"
           min="1"

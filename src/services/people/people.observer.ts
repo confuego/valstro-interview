@@ -8,7 +8,6 @@ export class Subject<T> {
   }
 
   public subscribe(cb: (arg: T) => void): Observer<T> {
-    console.log("sub");
     const obs = new Observer(cb, this, this.observers.length);
 
     if (this.value) {

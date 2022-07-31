@@ -1,76 +1,51 @@
 import { useEffect, useRef, useState } from "react";
+import { runVanillaApp } from "./challenge-1-vanilla";
 import { Person } from "./models";
-import {
-  clearRows,
-  generateRows,
-  resetInput,
-  setLoading,
-} from "./render.utils";
-import { PeopleService } from "./services/people";
+import { Observer } from "./services/people/people.observer";
 
 function FunctionalComp() {
+  const rootContainer = useRef<HTMLDivElement>(null);
   const loadingElement = useRef<HTMLDivElement>(null);
-  const [peopleStore, setPeopleStore] = useState<Person[]>([]);
-
-  useEffect(() => {
-    PeopleService.read().subscribe((p) => {
-      if (loadingElement.current) {
-        setPeopleStore(p);
-        setLoading(loadingElement.current, false);
-      }
-    });
-  }, [setPeopleStore, loadingElement.current]);
-
-  const [people, setPeople] = useState<Person[]>([]);
-
-  useEffect(() => {
-    setPeople(peopleStore);
-  }, [peopleStore]);
-
   const rowContainer = useRef<HTMLTableSectionElement>(null);
   const filterInput = useRef<HTMLInputElement>(null);
   const multiplierInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (rowContainer.current) {
-      clearRows(rowContainer.current);
-      generateRows(
+    let sub: Observer<Person[]> | undefined;
+    if (
+      rootContainer.current &&
+      rowContainer.current &&
+      multiplierInput.current &&
+      filterInput.current &&
+      loadingElement.current
+    ) {
+      sub = runVanillaApp(
+        rootContainer.current,
         rowContainer.current,
-        Number(multiplierInput.current?.value || 10),
-        ...people
+        multiplierInput.current,
+        filterInput.current,
+        loadingElement.current
       );
     }
-  }, [people, rowContainer.current, multiplierInput.current]);
+
+    return () => {
+      sub?.unsubscribe();
+    };
+  }, [
+    rootContainer.current,
+    rowContainer.current,
+    multiplierInput.current,
+    filterInput.current,
+    loadingElement.current,
+  ]);
 
   return (
-    <div
-      id="functional-comp"
-      onKeyUp={(e) => {
-        resetInput(e, filterInput.current, multiplierInput.current);
-      }}
-    >
+    <div ref={rootContainer} id="functional-comp">
       <h2>React Functional Component</h2>
-      Filter:{" "}
-      <input
-        ref={filterInput}
-        onInput={() =>
-          setPeople(
-            PeopleService.filter(filterInput.current?.value || "", peopleStore)
-          )
-        }
-        placeholder="Filter by name"
-      />{" "}
+      Filter: <input ref={filterInput} placeholder="Filter by name" />{" "}
       Multiplier:{" "}
       <input
         ref={multiplierInput}
-        onInput={() => {
-          clearRows(rowContainer.current as HTMLElement);
-          generateRows(
-            rowContainer.current as HTMLElement,
-            Number(multiplierInput.current?.value) || 10,
-            ...people
-          );
-        }}
         placeholder="Multiplier"
         type="number"
         min="1"

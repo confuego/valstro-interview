@@ -1,11 +1,11 @@
 import { PaginationResult } from "../../models/pagination.result";
 import { Person } from "../../models/person";
-import { Observer, Subject } from "./people.stalker";
+import { Observer, Subject } from "./people.observer";
 
 export class PeopleService {
   // https://swapi.dev/api/people/?format=json
 
-  private static peopleStalker = new Subject<Person[]>();
+  private static peopleObserver$ = new Subject<Person[]>();
 
   private static async collectData(): Promise<Person[]> {
     const result: Person[] = [];
@@ -36,22 +36,20 @@ export class PeopleService {
 
   public static read(): Subject<Person[]> {
     // already has subscribers
-    if (this.peopleStalker.observers.length) {
-      console.log("Already calling people api.");
-      return this.peopleStalker;
+    if (this.peopleObserver$.observers.length) {
+      return this.peopleObserver$;
     }
 
-    console.log("Collecting data from people API");
     this.collectData().then((r) => {
       console.log(
         "Notifying ",
-        this.peopleStalker.observers.length,
+        this.peopleObserver$.observers.length,
         " people subscribers."
       );
-      this.peopleStalker.next(r);
+      this.peopleObserver$.next(r);
     });
 
-    return this.peopleStalker;
+    return this.peopleObserver$;
   }
 
   public static filter(query: string, people: Person[]): Person[] {

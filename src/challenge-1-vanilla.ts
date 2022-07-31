@@ -1,4 +1,5 @@
 // Note: The HTML for this challenge can be found in index.html
+import { Person } from "./models";
 import {
   clearRows,
   generateRows,
@@ -6,20 +7,17 @@ import {
   setLoading,
 } from "./render.utils";
 import { PeopleService } from "./services/people";
+import { Observer } from "./services/people/people.observer";
 
-const filterElement = document.getElementById("filter") as HTMLInputElement;
-const multiplyElement = document.getElementById(
-  "multiplier"
-) as HTMLInputElement;
-const loadingElement = document.getElementById("loader") as HTMLElement;
-const characterContainer = document.getElementById("tbody") as HTMLElement;
-const rootElement = document.getElementById("vanilla") as HTMLElement;
-
-// Note: this function is run inside of src/main.tsx
-export function runVanillaApp() {
-  const sub = PeopleService.read().subscribe((peeps) => {
-    sub.unsubscribe();
-
+export function runVanillaApp(
+  rootElement = document.getElementById("vanilla") as HTMLElement,
+  characterContainer = document.getElementById("tbody") as HTMLElement,
+  multiplyElement = document.getElementById("multiplier") as HTMLInputElement,
+  filterElement = document.getElementById("filter") as HTMLInputElement,
+  loadingElement = document.getElementById("loader") as HTMLElement
+): Observer<Person[]> {
+  rootElement.tabIndex = 0;
+  return PeopleService.read().subscribe((peeps) => {
     generateRows(characterContainer, Number(multiplyElement.value), ...peeps);
     setLoading(loadingElement, false);
 
